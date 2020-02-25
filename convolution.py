@@ -153,8 +153,8 @@ def convolution_metrics_lattice(Adj, step_size_multiplier, sample_size= 1):
     #set the lattice.
     #note that this is currently an iterable, and will be consumed after the loop
     #recall that np.arange is an half empty interval [start, stop)
-    p_points = np.arange(0, 2*edge_density, step_size_multiplier*edge_density)
-    r_points = np.arange(0, 2*radius, step_size_multiplier* radius)
+    p_points = np.arange(0, edge_density, step_size_multiplier*edge_density)
+    r_points = np.arange(0, radius, step_size_multiplier* radius)
     m_points = range(10)
     lattice_points = product(p_points, r_points, m_points)
 
