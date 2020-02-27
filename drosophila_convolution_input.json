@@ -1,7 +1,7 @@
 {
- "path": "..\data\c.elegans.herm_pharynx_1.graphml",
- "step_size": 0.2,
+ "path": "../data/drosophila_medulla_1.graphml",
+ "step_size": 0.1,
  "sample_size": 30,
  "output_dir": "convolution_output",
- "critter_name": "celegans"
+ "critter_name": "drosophila_medulla"
  }

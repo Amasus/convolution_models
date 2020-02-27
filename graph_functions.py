@@ -31,6 +31,7 @@ def degree_dist(adj):
 #returns matrix
 #note, we are tossing the eigenvectors
 def eigenvalue_list(adj):
+    adj = adj.astype(float)
     verts = adj.shape[0]
     evals, evecs = sparse.linalg.eigsh(adj, verts-1)
     evals = np.sort(evals)

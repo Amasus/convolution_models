@@ -1,0 +1,7 @@
+{
+ "path": "../data/mouse_retina_1.graphml",
+ "step_size": 0.1,
+ "sample_size": 30,
+ "output_dir": "convolution_output",
+ "critter_name": "mouse_retina"
+ }
