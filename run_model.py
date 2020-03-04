@@ -5,8 +5,23 @@ import numpy as np
 
 ###personal modules###
 from file_conversion import convert
-from convolution import convolUtion_metrics_step, convolution_metrics_lattice
+from convolution import convolution_metrics_step, convolution_metrics_lattice
 import write_outputs as output
+
+####
+#David's code
+####
+def prepare_dataframe_for_csv(df):
+    """Modify dataframe in-place to convert all vectors/matrices to JSON equivalents
+
+    Args:
+        df (pd.DataFrame): The dataframe to modify
+    """
+    for column in df.columns:
+        if isinstance(df[column].iloc[0], np.ndarray):
+            df[column] = df[column].apply(lambda mat: json.dumps(mat.tolist()))
+    return df
+
 
 
 def main():
@@ -50,10 +65,15 @@ def main():
     #identify columns that are lists/matrics, etc.
     #test = summary.copy()
 
-    object_columns = list(filter(lambda c: summary[c].dtype == 'O', summary.columns))
-    for c in object_columns[1:]:
-        summary[c] = list(map(lambda entry: entry.tolist()[0], summary[c]))
+####
+#my old code
+####
+#    object_columns = list(filter(lambda c: summary[c].dtype == 'O', summary.columns))
+#    for c in object_columns[1:]:
+#    summary[c] = list(map(lambda entry: entry.tolist()[0], summary[c]))
 
+    summary = prepare_dataframe_for_csv(summary)
+    lattice_df = prepare_dataframe_for_csv(lattice_df)
     #new_object_columns = list(filter(lambda c: summary[c].dtype == 'O', summary.columns))
 
 

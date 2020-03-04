@@ -1,0 +1,7 @@
+{
+ "path": "../data/ZachKarateClub.csv",
+ "step_size": 0.1,
+ "sample_size": 300,
+ "output_dir": "convolution_output",
+ "critter_name": "karate_club"
+ }

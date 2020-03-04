@@ -64,7 +64,7 @@ def extract_sample_stats(vertex_num, params, sample_size, orig_dd, orig_ev, tri_
 
 
 #####TODO:COPYING CODE AND KILLING PUPPIES!!!!! REFACTOR
-def convolUtion_metrics_step(Adj, step_size_multiplier, sample_size= 1):
+def convolution_metrics_step(Adj, step_size_multiplier, sample_size= 1):
 
     #extract facts about the connectome, henceforth called the original graph
     #deg_dist, triangle number, eigenvalues
@@ -148,7 +148,6 @@ def convolution_metrics_lattice(Adj, step_size_multiplier, sample_size= 1):
 
     # initialize dataframe
     df = pd.DataFrame()
-
 
     #set the lattice.
     #note that this is currently an iterable, and will be consumed after the loop
