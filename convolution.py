@@ -2,13 +2,15 @@ import networkx as nx
 import numpy as np
 import pandas as pd
 
+from functools import partial
 from itertools import product
+from multiprocessing import Pool
 from numpy.random import choice, random
 from scipy import sparse
 import graph_functions as gf
 
 #takes parameters and returns a dictionary of the stats that will be recorded in dataframe. Returns a dictionary or numbers, 1 tuple of three, and a bunch of 1 by n matrices
-def extract_sample_stats(vertex_num, params, sample_size, orig_dd, orig_ev, tri_num):
+def extract_sample_stats(params, vertex_num, sample_size, orig_dd, orig_ev, tri_num):
     #generate sample
     sample = gf.generate_sample(vertex_num, params, sample_size)
 
@@ -63,7 +65,6 @@ def extract_sample_stats(vertex_num, params, sample_size, orig_dd, orig_ev, tri_
 
 
 
-#####TODO:COPYING CODE AND KILLING PUPPIES!!!!! REFACTOR
 def convolution_metrics_step(Adj, step_size_multiplier, sample_size= 1):
 
     #extract facts about the connectome, henceforth called the original graph
@@ -74,7 +75,7 @@ def convolution_metrics_step(Adj, step_size_multiplier, sample_size= 1):
     orig_deg_dist = gf.degree_dist(Adj)
     num_half_edges = orig_deg_dist.sum(1)[0,0]
     edge_density = num_half_edges/ (vertex_num * (vertex_num -1))
-    radius = (edge_density/(4* np.pi))**.5
+    radius = (edge_density/np.pi)**.5
     orig_tri_num = gf.triangle_count(Adj)
     orig_eigenvalues = gf.eigenvalue_list(Adj)
     print('connectome has ', orig_tri_num[0,0], 'triangles')
@@ -83,7 +84,8 @@ def convolution_metrics_step(Adj, step_size_multiplier, sample_size= 1):
     candidate_coord = (edge_density/2,radius/2, 2)
 
     #extract stats for coordinate
-    sample_stats = extract_sample_stats(vertex_num, candidate_coord, sample_size, orig_deg_dist, orig_eigenvalues, orig_tri_num)
+    sample_stats = extract_sample_stats(candidate_coord, vertex_num, sample_size, orig_deg_dist, orig_eigenvalues,
+                                        orig_tri_num)
 
     #now calculated in sample_stats
     old_error = sample_stats['error']
@@ -115,7 +117,8 @@ def convolution_metrics_step(Adj, step_size_multiplier, sample_size= 1):
         for prm in coords:
 
             #comutue stats for each coordinate. append to data frame
-            prm_stats = extract_sample_stats(vertex_num, prm, sample_size, orig_deg_dist, orig_eigenvalues, orig_tri_num)
+            prm_stats = extract_sample_stats(prm, vertex_num, sample_size, orig_deg_dist, orig_eigenvalues,
+                                             orig_tri_num)
             df = df.append(prm_stats, ignore_index= True)
 
         # select smallest error
@@ -131,7 +134,7 @@ def convolution_metrics_step(Adj, step_size_multiplier, sample_size= 1):
     summary['number of vertices'] = vertex_num
     return summary
 
-def convolution_metrics_lattice(Adj, step_size_multiplier, sample_size= 1):
+def convolution_metrics_lattice(Adj, step_size_multiplier, sample_size= 1, multi_process = True):
 
     #extract facts about the connectome, henceforth called the original graph
     #deg_dist, triangle number, eigenvalues
@@ -155,17 +158,27 @@ def convolution_metrics_lattice(Adj, step_size_multiplier, sample_size= 1):
     p_points = np.arange(0, edge_density, step_size_multiplier*edge_density)
     r_points = np.arange(0, radius, step_size_multiplier* radius)
     m_points = range(10)
-    lattice_points = product(p_points, r_points, m_points)
+    gp_points = np.arange(0.5, 1.000001, step_size_multiplier* .5)
+    lattice_points = product(p_points, r_points, m_points, gp_points)
 
-    for (p,r,m) in lattice_points:
-        #extract stats from current coordinate
-        current_coord = (p,r,m)
-        sample_stats = extract_sample_stats(vertex_num, current_coord, sample_size, orig_deg_dist, orig_eigenvalues,
-                                    orig_tri_num)
-        print("error =", sample_stats['error'], "parameters = ", sample_stats['Coords'])
-        #append to dataframe
-        df = df.append(sample_stats, ignore_index=True)
-
+    if multi_process:
+        # Joe's multi-processing code
+        #partial function introduced because multiprocessing needs a function that just calls the set of things to loop over
+        #note that in Windows, for this to function, had to wrap the calling in run_model in name == main
+        func_params = {'vertex_num': vertex_num, 'sample_size': sample_size, 'orig_dd': orig_deg_dist, 'orig_ev': orig_eigenvalues, 'tri_num': orig_tri_num}
+        with Pool(10) as pool:
+            for sample_stats in pool.imap_unordered(partial(extract_sample_stats, **func_params), lattice_points):
+                print("error =", sample_stats['error'], "parameters = ", sample_stats['Coords'])
+                df = df.append(sample_stats, ignore_index=True)
+    else:
+        for (p,r,m) in lattice_points:
+             #extract stats from current coordinate
+             current_coord = (p,r,m)
+             sample_stats = extract_sample_stats(vertex_num, current_coord, sample_size, orig_deg_dist, orig_eigenvalues,
+                                         orig_tri_num)
+             print("error =", sample_stats['error'], "parameters = ", sample_stats['Coords'])
+             #append to dataframe
+             df = df.append(sample_stats, ignore_index=True)
 
     # select smallest error
     min_error = df['error'].min()  # smallest error
@@ -180,6 +193,3 @@ def convolution_metrics_lattice(Adj, step_size_multiplier, sample_size= 1):
     summary['radius'] = radius
     summary['number of vertices'] = vertex_num
     return summary, df
-        
-
-        

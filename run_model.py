@@ -91,9 +91,9 @@ def main():
     lattice_df.to_csv(lattice_file, mode = 'w', header = True)
 
 
-
-for i in range(1):
-    print('run', i)
-    main()
-    i = 1+1
+if __name__ == '__main__':
+    for i in range(1):
+        print('run', i)
+        main()
+        i = 1+1
 

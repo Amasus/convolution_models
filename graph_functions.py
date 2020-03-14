@@ -30,10 +30,10 @@ def degree_dist(adj):
 #computes the eigenvalues of a (sparse) real symmetric square matrix (vertices \times vertices)
 #returns matrix
 #note, we are tossing the eigenvectors
-def eigenvalue_list(adj):
+def eigenvalue_list(adj, exclude=1):
     adj = adj.astype(float)
     verts = adj.shape[0]
-    evals, evecs = sparse.linalg.eigsh(adj, verts-1)
+    evals, evecs = sparse.linalg.eigsh(adj, k=verts-exclude, which='SA')
     evals = np.sort(evals)
     return np.asmatrix(evals)
 
@@ -55,7 +55,8 @@ def Convolve(vertices, parameters):
     prob = parameters[0]
     radius = parameters[1]
     connection = parameters[2]
-    #All adjacencies are 0 (make certain they are sparse
+    geom_prob = parameters[3]
+    #All adjacencies are 0 (make certain they are sparse)
     A_SG = sparse.csr_matrix((vertices, vertices))  #soft geometric graph.
     A_ER = sparse.csr_matrix((vertices, vertices))
     A_G = sparse.csr_matrix((vertices, vertices))
@@ -68,15 +69,19 @@ def Convolve(vertices, parameters):
         A_ER = nx.adjacency_matrix(ER)
     if radius >= MINFLOAT:
         #Create Geometric
-        G = nx.random_geometric_graph(vertices, radius)
-        A_G = nx.adjacency_matrix(G)
+        #G = nx.random_geometric_graph(vertices, radius)
+        #A_G = nx.adjacency_matrix(G)
+        #create soft geometric graph
+        dist = lambda x: geom_prob
+        SG = nx.soft_random_geometric_graph(vertices, radius, p_dist=dist)
+        A_SG = nx.adjacency_matrix(SG)
+    ####
+    #code for a multi step soft geometric
+    ####
     #if radius_large >= radius:
     #    #define a uniform probability for soft geometric
     #    def uniform(dist):
     #        return soft_prob
-    #    #create soft geometric graph
-    #    SG = nx.soft_random_geometric_graph(vertices, radius_large, p_dist=uniform)
-    #    A_SG = nx.adjacency_matrix(SG)
     if connection >= MINFLOAT:
         #Create Barabasi-Albert if m > 0; else turn BA off
         BA = nx.barabasi_albert_graph(vertices, connection)

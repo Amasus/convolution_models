@@ -5,9 +5,9 @@ import os
 import copy
 
 #Read in file
-folder = 'convolution_output'
+folder = 'convolution_output/correct radius'
 #data_file = input('csv file for data:')
-data_file = 'mouse_retina_lattice.csv'
+data_file = 'karate_club.csv'
 file_path = os.path.join(folder, data_file)
 df = pd.read_csv(file_path)
 
@@ -60,7 +60,7 @@ def find_percentile(number, vector):
     position = working_copy.index(number)
     #calulate percentile
     percentile = position / (len(working_copy)-1)
-    return percentile
+    return percentile, working_copy
 
 def create_percentile_column(num_name, list_name):
     row = list(df.index)
@@ -71,10 +71,15 @@ def create_percentile_column(num_name, list_name):
     return percentile_list
 
 min_error = df['error'].min()
+min_index = df.index[df['error'] == min_error]
 min_row = df.loc[df['error'] == min_error]
-percentile= find_percentile(min_row['original dd distance from mean'].item(), min_row['sample distances from mean dd vec'].item()[0])
+
+percentile_dd, full_list_dd= find_percentile(min_row['original dd distance from mean'].item(), min_row['sample distances from mean dd vec'].item()[0])
 print('original distance', min_row['original dd distance from mean'].item())
 print('sample distances', min_row['sample distances from mean dd vec'].item()[0])
+
+percentile_ev, full_list_ev= find_percentile(min_row['original ev distance from mean'].item(), min_row['sample distances from mean ev vec'].item()[0])
+
 
 df["percentile dd distance from mean"] = create_percentile_column('original dd distance from mean', 'sample distances from mean dd vec')
 df["percentile ev distance from mean"] = create_percentile_column('original ev distance from mean', 'sample distances from mean ev vec')
